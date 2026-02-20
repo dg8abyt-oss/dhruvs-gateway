@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dhruvs AI Gateway</title>
+    <title>Dhruvs AI Gateway Docs</title>
     <script src="https://cdn.tailwindcss.com"></script>
     
     <script>
@@ -26,35 +26,49 @@
     <main class="max-w-3xl mx-auto">
         
         <header class="mb-12">
-            <h1 class="text-4xl font-bold tracking-tight text-white mb-4">
-                Dhruvs AI Gateway
-            </h1>
+            <div class="flex items-center justify-between mb-4">
+                <h1 class="text-4xl font-bold tracking-tight text-white">
+                    Dhruvs AI Gateway
+                </h1>
+                <span class="px-3 py-1 bg-green-900 text-green-300 text-xs font-semibold rounded-full border border-green-700">
+                    v2.0 Active
+                </span>
+            </div>
             <p class="text-lg text-gray-400">
-                Connect any website to world-class AI models using a single script tag. 
-                No API keys required on the client, and no complex backend setup.
+                Connect any <code class="text-gray-200">*.dhruvs.host</code> website to world-class AI models using a single script tag. 
+                Zero API keys required on the client, and no complex backend setup.
             </p>
         </header>
+
+        <section class="mb-12 bg-red-950/30 border border-red-900 rounded-lg p-5">
+            <h3 class="text-red-400 font-semibold mb-2 flex items-center gap-2">
+                🔒 Security Restriction
+            </h3>
+            <p class="text-sm text-gray-300">
+                To prevent abuse, this gateway is strictly locked to domains ending in <strong>dhruvs.host</strong>. Attempting to run this script from any other domain will result in a <code class="text-red-300">use dhruvs.host domain</code> error in your console, and the request will be blocked.
+            </p>
+        </section>
 
         <section class="mb-12">
             <h2 class="text-2xl font-semibold text-white mb-6">Quick Start</h2>
             
             <div class="mb-8">
                 <h3 class="text-lg font-medium text-gray-200 mb-2">1. Control the AI's Personality</h3>
-                <p class="text-gray-400 mb-2">
-                    Create a <code class="bg-gray-800 px-1 py-0.5 rounded text-gray-200">prompt.txt</code> file at the root of your website. This file will strictly control the AI.
+                <p class="text-gray-400 text-sm mb-2">
+                    Create a <code class="bg-gray-800 px-1 py-0.5 rounded text-gray-200">prompt.txt</code> file at the root of your website. This file strictly controls the AI.
                 </p>
                 <div class="relative my-4 rounded-lg bg-gray-900 border border-gray-800 shadow-lg overflow-hidden">
                     <div class="flex items-center justify-between px-4 py-2 bg-gray-950 border-b border-gray-800">
                         <span class="text-xs font-mono text-gray-400">prompt.txt</span>
                         <button onclick="copyCode(this, 'code-1')" class="text-xs text-gray-400 hover:text-white transition-colors duration-200">Copy</button>
                     </div>
-                    <pre class="p-4 overflow-x-auto text-sm text-gray-300 font-mono"><code id="code-1">You are a helpful and sarcastic AI assistant. Keep your answers brief.</code></pre>
+                    <pre class="p-4 overflow-x-auto text-sm text-gray-300 font-mono"><code id="code-1">You are a helpful and sarcastic AI assistant. Think step-by-step. Keep your final answers brief.</code></pre>
                 </div>
             </div>
 
             <div class="mb-8">
                 <h3 class="text-lg font-medium text-gray-200 mb-2">2. Embed the Script</h3>
-                <p class="text-gray-400 mb-2">Add this script tag to your HTML file.</p>
+                <p class="text-gray-400 text-sm mb-2">Add this script tag to your HTML file.</p>
                 <div class="relative my-4 rounded-lg bg-gray-900 border border-gray-800 shadow-lg overflow-hidden">
                     <div class="flex items-center justify-between px-4 py-2 bg-gray-950 border-b border-gray-800">
                         <span class="text-xs font-mono text-gray-400">html</span>
@@ -66,7 +80,10 @@
 
             <div class="mb-8">
                 <h3 class="text-lg font-medium text-gray-200 mb-2">3. Call the AI</h3>
-                <p class="text-gray-400 mb-2">Use the global function anywhere in your Javascript to interact with the gateway.</p>
+                <p class="text-gray-400 text-sm mb-2">
+                    Use the global <code class="bg-gray-800 px-1 rounded text-gray-200">window.dhruvs()</code> function. It takes four arguments: 
+                    <br><code>(action, message, model_id, showThinking)</code>
+                </p>
                 <div class="relative my-4 rounded-lg bg-gray-900 border border-gray-800 shadow-lg overflow-hidden">
                     <div class="flex items-center justify-between px-4 py-2 bg-gray-950 border-b border-gray-800">
                         <span class="text-xs font-mono text-gray-400">javascript</span>
@@ -75,8 +92,9 @@
                     <pre class="p-4 overflow-x-auto text-sm text-gray-300 font-mono"><code id="code-3">async function runAI() {
   const reply = await window.dhruvs(
     "gateway-call", 
-    "Hello world!", 
-    "openai/gpt-4o" // Pass the model ID here
+    "Explain quantum physics in one sentence.", 
+    "alibaba/qwen3-max", // Provider and Model ID
+    true                 // Set to true to output reasoning tokens (if supported)
   );
   console.log(reply);
 }</code></pre>
@@ -84,10 +102,10 @@
             </div>
         </section>
 
-        <section>
+        <section class="mb-12">
             <h2 class="text-2xl font-semibold text-white mb-4">Supported Models</h2>
-            <p class="text-gray-400 mb-4">
-                Pass any of the following strings as the third argument to the <code class="bg-gray-800 px-1 rounded text-gray-200">dhruvs()</code> function.
+            <p class="text-gray-400 text-sm mb-4">
+                Pass any of the following strings as the <strong>third argument</strong> to the function. The Gateway automatically routes the request to the correct provider.
             </p>
             
             <div class="bg-gray-900 border border-gray-800 rounded-lg overflow-hidden">
@@ -99,20 +117,57 @@
                         </tr>
                     </thead>
                     <tbody class="text-sm text-gray-400">
-                        <tr class="border-b border-gray-800">
-                            <td class="py-3 px-4 font-medium text-gray-200">OpenAI</td>
-                            <td class="py-3 px-4 font-mono">openai/gpt-4o</td>
+                        <tr class="border-b border-gray-800 hover:bg-gray-800/50 transition">
+                            <td class="py-3 px-4 font-medium text-gray-200">Alibaba</td>
+                            <td class="py-3 px-4 font-mono">alibaba/qwen3-max<br><span class="text-xs text-gray-500">alibaba/qwen3.5-plus</span></td>
                         </tr>
-                        <tr class="border-b border-gray-800">
+                        <tr class="border-b border-gray-800 hover:bg-gray-800/50 transition">
+                            <td class="py-3 px-4 font-medium text-gray-200">OpenAI</td>
+                            <td class="py-3 px-4 font-mono">openai/gpt-4o<br><span class="text-xs text-gray-500">openai/gpt-4o-mini</span></td>
+                        </tr>
+                        <tr class="border-b border-gray-800 hover:bg-gray-800/50 transition">
                             <td class="py-3 px-4 font-medium text-gray-200">Anthropic</td>
                             <td class="py-3 px-4 font-mono">anthropic/claude-3-5-sonnet-20240620</td>
                         </tr>
-                        <tr>
+                        <tr class="hover:bg-gray-800/50 transition">
                             <td class="py-3 px-4 font-medium text-gray-200">Google</td>
                             <td class="py-3 px-4 font-mono">google/gemini-1.5-pro</td>
                         </tr>
                     </tbody>
                 </table>
+            </div>
+        </section>
+
+        <section>
+            <h2 class="text-2xl font-semibold text-white mb-4">API Endpoints</h2>
+            
+            <div class="space-y-6">
+                <div class="bg-gray-900 border border-gray-800 rounded-lg p-5">
+                    <div class="flex items-center gap-3 mb-2">
+                        <span class="px-2 py-0.5 bg-blue-900 text-blue-300 text-xs font-bold rounded">POST</span>
+                        <code class="text-gray-200 font-mono text-sm">/api/gateway</code>
+                    </div>
+                    <p class="text-sm text-gray-400">
+                        The primary data stream endpoint. This is automatically handled by the <code>widget.js</code> script.
+                    </p>
+                </div>
+
+                <div class="bg-gray-900 border border-gray-800 rounded-lg p-5">
+                    <div class="flex items-center gap-3 mb-2">
+                        <span class="px-2 py-0.5 bg-green-900 text-green-300 text-xs font-bold rounded">GET</span>
+                        <code class="text-gray-200 font-mono text-sm">/health</code>
+                    </div>
+                    <p class="text-sm text-gray-400 mb-3">
+                        A diagnostic endpoint to verify the gateway is operational. It bypasses the streaming protocol and uses <code class="text-gray-300">gpt-5-mini</code> to return a strict JSON status response.
+                    </p>
+                    <div class="bg-black border border-gray-800 rounded p-3">
+                        <pre class="text-xs text-gray-400 font-mono"><code>{
+  "status": "healthy",
+  "model": "openai/gpt-5-mini",
+  "response": "OK - Systems Operational"
+}</code></pre>
+                    </div>
+                </div>
             </div>
         </section>
 
