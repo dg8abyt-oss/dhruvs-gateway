@@ -1,55 +1,73 @@
 (function(window) {
   const GATEWAY_URL = "https://gateway.dhruvs.host/api/gateway";
 
-  // 1. Check the domain immediately when the script loads
   const currentDomain = window.location.hostname;
   const isValid = currentDomain === "dhruvs.host" || 
                   currentDomain.endsWith(".dhruvs.host") || 
-                  currentDomain === "localhost"; // Left localhost so you can test locally
+                  currentDomain === "localhost"; 
 
-  // If they aren't on your domain, yell at them in the console
-  if (!isValid) {
-    console.error("This domain is not authorized to use the Dhruv Gowda/Alibaba Gateway");
-  }
+  if (!isValid) console.error("use dhruvs.host domain");
 
-  async function gatewayCall(message, model) {
-    // Prevent the function from even running if it's the wrong domain
+  // ADDED: showThinking parameter (defaults to false)
+  async function gatewayCall(message, model, showThinking = false) {
     if (!isValid) {
-      console.error("This domain is not authorized to use the Dhruv Gowda/Alibaba Gateway");
+      console.error("use dhruvs.host domain");
       return "Error: Unauthorized domain.";
     }
 
     try {
       const promptReq = await fetch('/prompt.txt');
-      if (!promptReq.ok) console.warn("DhruvsAI: /prompt.txt not found.");
       const systemPrompt = promptReq.ok ? await promptReq.text() : "";
 
       const res = await fetch(GATEWAY_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message, systemPrompt: systemPrompt.trim(), model })
+        // Pass the toggle to the backend
+        body: JSON.stringify({ message, systemPrompt: systemPrompt.trim(), model, showThinking })
       });
 
       if (!res.body) return "Error: No response from gateway.";
 
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
+      
       let text = "";
+      let buffer = "";
 
+      // PROPER VERCEL STREAM PARSING
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
-        const chunk = decoder.decode(value, { stream: true });
-        text += chunk.replace(/^0:"|"$|\\n/gm, (m) => m === '\\n' ? '\n' : '');
+        
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        
+        // Keep the last incomplete line in the buffer for the next chunk
+        buffer = lines.pop(); 
+
+        for (const line of lines) {
+          if (!line) continue;
+
+          // 0: is standard text
+          if (line.startsWith('0:')) {
+            text += JSON.parse(line.substring(2));
+          } 
+          // 8: is native reasoning (like DeepSeek R1). Only add it if toggled ON.
+          else if (line.startsWith('8:') && showThinking) {
+            text += `\n💭 *${JSON.parse(line.substring(2))}*\n`;
+          }
+        }
       }
-      return text.replace(/\\"/g, '"');
+      
+      return text;
     } catch (err) {
       console.error("Gateway Error:", err);
       return "Error contacting gateway.";
     }
   }
 
-  window.dhruvs = (action, payload, model) => {
-    if (action === "gateway-call") return gatewayCall(payload, model);
+  // Bind the toggle to the global function
+  window.dhruvs = (action, payload, model, showThinking) => {
+    if (action === "gateway-call") return gatewayCall(payload, model, showThinking);
   };
 })(window);
