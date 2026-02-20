@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dhruvs AI Gateway</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script>
+        // Copy to clipboard function
+        function copyCode(button, elementId) {
+            const codeText = document.getElementById(elementId).innerText;
+            navigator.clipboard.writeText(codeText).then(() => {
+                const originalText = button.innerText;
+                button.innerText = "✓ Copied!";
+                button.classList.add("text-white");
+                setTimeout(() => { 
+                    button.innerText = "Copy"; 
+                    button.classList.remove("text-white");
+                }, 2000);
+            });
+        }
+    </script>
+</head>
+<body class="bg-black text-gray-100 font-sans min-h-screen py-16 px-6 sm:px-12">
+    <main class="max-w-3xl mx-auto">
+        
+        <header class="mb-12">
+            <h1 class="text-4xl font-bold tracking-tight text-white mb-4">
+                Dhruvs AI Gateway
+            </h1>
+            <p class="text-lg text-gray-400">
+                Connect any website to world-class AI models using a single script tag. 
+                No API keys required on the client, and no complex backend setup.
+            </p>
+        </header>
+
+        <section class="mb-12">
+            <h2 class="text-2xl font-semibold text-white mb-6">Quick Start</h2>
+            
+            <div class="mb-8">
+                <h3 class="text-lg font-medium text-gray-200 mb-2">1. Control the AI's Personality</h3>
+                <p class="text-gray-400 mb-2">
+                    Create a <code class="bg-gray-800 px-1 py-0.5 rounded text-gray-200">prompt.txt</code> file at the root of your website. This file will strictly control the AI.
+                </p>
+                <div class="relative my-4 rounded-lg bg-gray-900 border border-gray-800 shadow-lg overflow-hidden">
+                    <div class="flex items-center justify-between px-4 py-2 bg-gray-950 border-b border-gray-800">
+                        <span class="text-xs font-mono text-gray-400">prompt.txt</span>
+                        <button onclick="copyCode(this, 'code-1')" class="text-xs text-gray-400 hover:text-white transition-colors duration-200">Copy</button>
+                    </div>
+                    <pre class="p-4 overflow-x-auto text-sm text-gray-300 font-mono"><code id="code-1">You are a helpful and sarcastic AI assistant. Keep your answers brief.</code></pre>
+                </div>
+            </div>
+
+            <div class="mb-8">
+                <h3 class="text-lg font-medium text-gray-200 mb-2">2. Embed the Script</h3>
+                <p class="text-gray-400 mb-2">Add this script tag to your HTML file.</p>
+                <div class="relative my-4 rounded-lg bg-gray-900 border border-gray-800 shadow-lg overflow-hidden">
+                    <div class="flex items-center justify-between px-4 py-2 bg-gray-950 border-b border-gray-800">
+                        <span class="text-xs font-mono text-gray-400">html</span>
+                        <button onclick="copyCode(this, 'code-2')" class="text-xs text-gray-400 hover:text-white transition-colors duration-200">Copy</button>
+                    </div>
+                    <pre class="p-4 overflow-x-auto text-sm text-gray-300 font-mono"><code id="code-2">&lt;script src="https://gateway.dhruvs.host/widget.js" defer&gt;&lt;/script&gt;</code></pre>
+                </div>
+            </div>
+
+            <div class="mb-8">
+                <h3 class="text-lg font-medium text-gray-200 mb-2">3. Call the AI</h3>
+                <p class="text-gray-400 mb-2">Use the global function anywhere in your Javascript to interact with the gateway.</p>
+                <div class="relative my-4 rounded-lg bg-gray-900 border border-gray-800 shadow-lg overflow-hidden">
+                    <div class="flex items-center justify-between px-4 py-2 bg-gray-950 border-b border-gray-800">
+                        <span class="text-xs font-mono text-gray-400">javascript</span>
+                        <button onclick="copyCode(this, 'code-3')" class="text-xs text-gray-400 hover:text-white transition-colors duration-200">Copy</button>
+                    </div>
+                    <pre class="p-4 overflow-x-auto text-sm text-gray-300 font-mono"><code id="code-3">async function runAI() {
+  const reply = await window.dhruvs(
+    "gateway-call", 
+    "Hello world!", 
+    "openai/gpt-4o" // Pass the model ID here
+  );
+  console.log(reply);
+}</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2 class="text-2xl font-semibold text-white mb-4">Supported Models</h2>
+            <p class="text-gray-400 mb-4">
+                Pass any of the following strings as the third argument to the <code class="bg-gray-800 px-1 rounded text-gray-200">dhruvs()</code> function.
+            </p>
+            
+            <div class="bg-gray-900 border border-gray-800 rounded-lg overflow-hidden">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-gray-950 border-b border-gray-800">
+                            <th class="py-3 px-4 text-sm font-medium text-gray-300">Provider</th>
+                            <th class="py-3 px-4 text-sm font-medium text-gray-300">Model ID String</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-sm text-gray-400">
+                        <tr class="border-b border-gray-800">
+                            <td class="py-3 px-4 font-medium text-gray-200">OpenAI</td>
+                            <td class="py-3 px-4 font-mono">openai/gpt-4o</td>
+                        </tr>
+                        <tr class="border-b border-gray-800">
+                            <td class="py-3 px-4 font-medium text-gray-200">Anthropic</td>
+                            <td class="py-3 px-4 font-mono">anthropic/claude-3-5-sonnet-20240620</td>
+                        </tr>
+                        <tr>
+                            <td class="py-3 px-4 font-medium text-gray-200">Google</td>
+                            <td class="py-3 px-4 font-mono">google/gemini-1.5-pro</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+</body>
+</html>
