@@ -41,13 +41,29 @@ export default async function handler(req: Request) {
   if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers });
 
   try {
-    // We still extract showThinking so it doesn't break the JSON parsing, 
-    // but we completely ignore it on the backend.
-    const { message, systemPrompt, model } = await req.json();
+    const { message, model, showThinking } = await req.json();
+
+    // SERVER-SIDE PROMPT FETCHING
+    let systemPrompt = "You are a helpful assistant.";
+    
+    if (origin) {
+      try {
+        // Fetch the prompt.txt directly from the user's domain
+        const promptRes = await fetch(`${origin}/prompt.txt`);
+        if (promptRes.ok) {
+          const text = await promptRes.text();
+          if (text.trim()) systemPrompt = text.trim();
+        } else {
+          console.warn(`DhruvsAI: No prompt.txt found at ${origin}. Using default.`);
+        }
+      } catch (err) {
+        console.warn(`DhruvsAI: Failed to fetch prompt.txt from ${origin}`);
+      }
+    }
 
     const result = await streamText({
       model: gatewayProvider(model), 
-      system: systemPrompt || "You are a helpful assistant.", // NO INJECTION. Pure user config.
+      system: systemPrompt, 
       messages: [{ role: 'user', content: message }],
     });
 
