@@ -24,7 +24,6 @@ function isAllowedOrigin(origin: string | null) {
 export default async function handler(req: Request) {
   const origin = req.headers.get('origin');
 
-  // 1. DOMAIN SECURITY
   if (!isAllowedOrigin(origin)) {
     console.error("use dhruvs.host domain"); 
     return new Response(JSON.stringify({ error: 'use dhruvs.host domain' }), { 
@@ -43,9 +42,10 @@ export default async function handler(req: Request) {
 
   try {
     const { message, model, showThinking } = await req.json();
-    let systemPrompt = "You are a helpful assistant.";
     
-    // 2. SERVER-SIDE PROMPT FETCHING & PROTECTION
+    // 1. NO HARDCODED FALLBACK. It starts undefined.
+    let systemPrompt = undefined;
+    
     if (origin) {
       const promptUrl = `${origin}/prompt.txt`;
       console.log(`[Gateway] Fetching prompt from: ${promptUrl}`);
@@ -54,31 +54,30 @@ export default async function handler(req: Request) {
         const promptRes = await fetch(promptUrl);
         if (promptRes.ok) {
           const text = await promptRes.text();
-          // Stop HTML from being injected as a system prompt
+          
           if (text.trim().startsWith('<')) {
-            console.error(`[Gateway] ERROR: Fetched file is HTML. Using default prompt.`);
+            console.error(`[Gateway] ERROR: Fetched file is HTML. Proceeding with NO system prompt.`);
           } else if (text.trim()) {
+            // 2. Only assigns it if it's actual text
             systemPrompt = text.trim();
             console.log(`[Gateway] SUCCESS: Loaded prompt: "${systemPrompt.substring(0, 40)}..."`);
           }
         } else {
-          console.warn(`[Gateway] WARNING: /prompt.txt returned status ${promptRes.status}.`);
+          console.warn(`[Gateway] WARNING: /prompt.txt returned status ${promptRes.status}. Proceeding with NO system prompt.`);
         }
       } catch (err: any) {
         console.error(`[Gateway] FETCH FAILED: ${err.message}`);
       }
     }
 
-    // 3. AI CALL WITH DEEP LOGGING
     const result = await streamText({
       model: gatewayProvider(model), 
-      system: systemPrompt, 
+      // 3. Only pass the 'system' parameter if the user actually provided one
+      ...(systemPrompt && { system: systemPrompt }), 
       messages: [{ role: 'user', content: message }],
       onFinish: ({ text, finishReason, usage }) => {
-        // This will print the exact reason the AI stopped to your Vercel logs
         console.log(`[AI Status] Finished. Reason: ${finishReason}`);
         console.log(`[AI Status] Tokens Used: ${usage.totalTokens}`);
-        
         if (!text || text.trim() === "") {
           console.error("[AI Status] CRITICAL: The AI returned an empty string.");
         }
