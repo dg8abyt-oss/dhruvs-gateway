@@ -24,6 +24,7 @@ function isAllowedOrigin(origin: string | null) {
 export default async function handler(req: Request) {
   const origin = req.headers.get('origin');
 
+  // 1. DOMAIN SECURITY
   if (!isAllowedOrigin(origin)) {
     console.error("use dhruvs.host domain"); 
     return new Response(JSON.stringify({ error: 'use dhruvs.host domain' }), { 
@@ -42,26 +43,23 @@ export default async function handler(req: Request) {
 
   try {
     const { message, model, showThinking } = await req.json();
-
     let systemPrompt = "You are a helpful assistant.";
     
-    // --- NEW LOGGING & PROTECTION LOGIC ---
+    // 2. SERVER-SIDE PROMPT FETCHING & PROTECTION
     if (origin) {
       const promptUrl = `${origin}/prompt.txt`;
-      console.log(`[Gateway] Attempting to fetch prompt from: ${promptUrl}`);
+      console.log(`[Gateway] Fetching prompt from: ${promptUrl}`);
       
       try {
         const promptRes = await fetch(promptUrl);
-        
         if (promptRes.ok) {
           const text = await promptRes.text();
-          
-          // Protect against Vercel returning an HTML 404 page
+          // Stop HTML from being injected as a system prompt
           if (text.trim().startsWith('<')) {
-            console.error(`[Gateway] ERROR: Fetched file looks like an HTML page. Falling back to default.`);
+            console.error(`[Gateway] ERROR: Fetched file is HTML. Using default prompt.`);
           } else if (text.trim()) {
             systemPrompt = text.trim();
-            console.log(`[Gateway] SUCCESS: Loaded custom prompt: "${systemPrompt.substring(0, 40)}..."`);
+            console.log(`[Gateway] SUCCESS: Loaded prompt: "${systemPrompt.substring(0, 40)}..."`);
           }
         } else {
           console.warn(`[Gateway] WARNING: /prompt.txt returned status ${promptRes.status}.`);
@@ -69,18 +67,27 @@ export default async function handler(req: Request) {
       } catch (err: any) {
         console.error(`[Gateway] FETCH FAILED: ${err.message}`);
       }
-    } else {
-      console.warn(`[Gateway] WARNING: No origin header found in request.`);
     }
 
+    // 3. AI CALL WITH DEEP LOGGING
     const result = await streamText({
       model: gatewayProvider(model), 
       system: systemPrompt, 
       messages: [{ role: 'user', content: message }],
+      onFinish: ({ text, finishReason, usage }) => {
+        // This will print the exact reason the AI stopped to your Vercel logs
+        console.log(`[AI Status] Finished. Reason: ${finishReason}`);
+        console.log(`[AI Status] Tokens Used: ${usage.totalTokens}`);
+        
+        if (!text || text.trim() === "") {
+          console.error("[AI Status] CRITICAL: The AI returned an empty string.");
+        }
+      }
     });
 
     return result.toDataStreamResponse({ headers });
   } catch (error: any) {
+    console.error(`[Gateway] SERVER ERROR:`, error.message);
     return new Response(JSON.stringify({ error: error.message }), { status: 500, headers });
   }
 }
