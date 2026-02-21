@@ -43,22 +43,34 @@ export default async function handler(req: Request) {
   try {
     const { message, model, showThinking } = await req.json();
 
-    // SERVER-SIDE PROMPT FETCHING
     let systemPrompt = "You are a helpful assistant.";
     
+    // --- NEW LOGGING & PROTECTION LOGIC ---
     if (origin) {
+      const promptUrl = `${origin}/prompt.txt`;
+      console.log(`[Gateway] Attempting to fetch prompt from: ${promptUrl}`);
+      
       try {
-        // Fetch the prompt.txt directly from the user's domain
-        const promptRes = await fetch(`${origin}/prompt.txt`);
+        const promptRes = await fetch(promptUrl);
+        
         if (promptRes.ok) {
           const text = await promptRes.text();
-          if (text.trim()) systemPrompt = text.trim();
+          
+          // Protect against Vercel returning an HTML 404 page
+          if (text.trim().startsWith('<')) {
+            console.error(`[Gateway] ERROR: Fetched file looks like an HTML page. Falling back to default.`);
+          } else if (text.trim()) {
+            systemPrompt = text.trim();
+            console.log(`[Gateway] SUCCESS: Loaded custom prompt: "${systemPrompt.substring(0, 40)}..."`);
+          }
         } else {
-          console.warn(`DhruvsAI: No prompt.txt found at ${origin}. Using default.`);
+          console.warn(`[Gateway] WARNING: /prompt.txt returned status ${promptRes.status}.`);
         }
-      } catch (err) {
-        console.warn(`DhruvsAI: Failed to fetch prompt.txt from ${origin}`);
+      } catch (err: any) {
+        console.error(`[Gateway] FETCH FAILED: ${err.message}`);
       }
+    } else {
+      console.warn(`[Gateway] WARNING: No origin header found in request.`);
     }
 
     const result = await streamText({
